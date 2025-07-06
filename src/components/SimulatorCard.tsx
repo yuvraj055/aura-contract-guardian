@@ -1,12 +1,50 @@
+
 import React, { useState } from 'react';
 import { Activity, Upload, Play, Download, FileText, TrendingDown, Zap, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
+interface SimulationFunction {
+  name: string;
+  gasUsed: number;
+  optimizedGas: number;
+  savings: number;
+  severity: 'high' | 'medium' | 'low';
+  suggestions: string[];
+}
+
+interface SimulationScenario {
+  gasUsed: number;
+  cost: number;
+}
+
+interface OptimizationRecommendation {
+  type: string;
+  description: string;
+  impact: string;
+  savings: string;
+}
+
+interface SimulationResults {
+  totalGasUsed: number;
+  optimizedGasUsed: number;
+  savingsPercent: number;
+  savingsEth: number;
+  savingsUsd: number;
+  functions: SimulationFunction[];
+  scenarios: {
+    standard: SimulationScenario;
+    lowTraffic: SimulationScenario;
+    highTraffic: SimulationScenario;
+    optimized: SimulationScenario;
+  };
+  optimizations: OptimizationRecommendation[];
+}
+
 export const SimulatorCard = () => {
   const [contractCode, setContractCode] = useState('');
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationResults, setSimulationResults<any>(null);
+  const [simulationResults, setSimulationResults] = useState<SimulationResults | null>(null);
   const [selectedScenario, setSelectedScenario] = useState('standard');
   const [gasPrice, setGasPrice] = useState('20');
 
@@ -29,7 +67,7 @@ export const SimulatorCard = () => {
     }, 2500);
 
     setTimeout(() => {
-      const mockResults = {
+      const mockResults: SimulationResults = {
         totalGasUsed: 2456789,
         optimizedGasUsed: 1834567,
         savingsPercent: 25.3,
@@ -109,8 +147,7 @@ export const SimulatorCard = () => {
       return;
     }
 
-    const reportContent = `
-<!DOCTYPE html>
+    const reportContent = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -129,7 +166,7 @@ export const SimulatorCard = () => {
         .section { margin-bottom: 30px; }
         .section h2 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; }
         .function-analysis { background: #fafafa; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
-        .function-header { display: flex; justify-content: between; align-items: center; margin-bottom: 15px; }
+        .function-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .function-name { font-weight: bold; font-size: 1.2em; color: #1e293b; }
         .severity { padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
         .severity.high { background: #fecaca; color: #dc2626; }
@@ -186,7 +223,7 @@ export const SimulatorCard = () => {
 
             <div class="section">
                 <h2>🔍 Function Analysis</h2>
-                ${simulationResults.functions.map((func: any) => `
+                ${simulationResults.functions.map((func: SimulationFunction) => `
                     <div class="function-analysis">
                         <div class="function-header">
                             <span class="function-name">${func.name}()</span>
@@ -218,7 +255,7 @@ export const SimulatorCard = () => {
 
             <div class="section">
                 <h2>🚀 Optimization Recommendations</h2>
-                ${simulationResults.optimizations.map((opt: any) => `
+                ${simulationResults.optimizations.map((opt: OptimizationRecommendation) => `
                     <div class="optimization-card">
                         <h4>${opt.type} <span class="impact ${opt.impact.toLowerCase()}">${opt.impact} Impact</span></h4>
                         <p>${opt.description}</p>
@@ -356,7 +393,10 @@ export const SimulatorCard = () => {
                   <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                   <p className="text-slate-500">Run a simulation first to generate a report</p>
                   <button
-                    onClick={() => document.querySelector('[value="simulate"]')?.click()}
+                    onClick={() => {
+                      const simulateTab = document.querySelector('[value="simulate"]') as HTMLElement;
+                      simulateTab?.click();
+                    }}
                     className="mt-4 text-green-600 hover:text-green-700 font-medium"
                   >
                     Go to Simulation →
@@ -445,7 +485,7 @@ export const SimulatorCard = () => {
                 <p className="text-slate-600">Review the identified optimizations and apply them to your contract</p>
                 
                 <div className="space-y-3">
-                  {simulationResults.optimizations.map((opt: any, index: number) => (
+                  {simulationResults.optimizations.map((opt: OptimizationRecommendation, index: number) => (
                     <div key={index} className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h5 className="font-medium text-slate-900">{opt.type}</h5>
@@ -473,7 +513,10 @@ export const SimulatorCard = () => {
                 <AlertTriangle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500">Run a simulation first to view optimization suggestions</p>
                 <button
-                  onClick={() => document.querySelector('[value="simulate"]')?.click()}
+                  onClick={() => {
+                    const simulateTab = document.querySelector('[value="simulate"]') as HTMLElement;
+                    simulateTab?.click();
+                  }}
                   className="mt-4 text-green-600 hover:text-green-700 font-medium"
                 >
                   Go to Simulation →
