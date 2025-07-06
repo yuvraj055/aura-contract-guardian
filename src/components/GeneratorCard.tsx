@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Wand2, FileText, Eye, Download, Copy, Rocket, Settings, CheckCircle, Code, Zap } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,15 +9,15 @@ export const GeneratorCard = () => {
   const [contractParams, setContractParams] = useState({
     name: '',
     symbol: '',
-    totalSupply: '',
+    totalSupply: '1000000',
     decimals: '18',
     mintable: false,
     burnable: false,
     pausable: false,
     ownable: true,
     // NFT specific
-    baseURI: '',
-    maxSupply: '',
+    baseURI: 'https://api.example.com/metadata/',
+    maxSupply: '10000',
     mintPrice: '0.01',
     // DAO specific
     votingPeriod: '7',
@@ -229,7 +228,7 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 contract ${contractParams.name.replace(/\s+/g, '')} is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Ownable, ReentrancyGuard, IERC2981 {
     
     uint256 private _nextTokenId = 1;
-    uint256 public constant MAX_SUPPLY = ${contractParams.maxSupply || '10000'};
+    uint256 public constant MAX_SUPPLY = ${contractParams.maxSupply};
     uint256 public mintPrice = ${contractParams.mintPrice} ether;
     string private _baseTokenURI = "${contractParams.baseURI}";
     
@@ -337,9 +336,9 @@ contract ${contractParams.name.replace(/\s+/g, '')}DAO is Governor, GovernorSett
     
     constructor(IVotes _token, TimelockController _timelock)
         Governor("${contractParams.name} DAO")
-        GovernorSettings(7200, /* 1 day */ 50400, /* 1 week */ 0)
+        GovernorSettings(7200, /* 1 day */ ${parseInt(contractParams.votingPeriod) * 7200}, /* ${contractParams.votingPeriod} days */ 0)
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(${contractParams.quorum || '4'})
+        GovernorVotesQuorumFraction(${contractParams.quorum})
         GovernorTimelockControl(_timelock)
     {}
 
@@ -350,7 +349,7 @@ contract ${contractParams.name.replace(/\s+/g, '')}DAO is Governor, GovernorSett
 
     // Voting period: How long does a proposal remain open to votes
     function votingPeriod() public pure override(IGovernor, GovernorSettings) returns (uint256) {
-        return ${contractParams.votingPeriod ? contractParams.votingPeriod + '0400' : '50400'}; // ${contractParams.votingPeriod || '7'} days
+        return ${parseInt(contractParams.votingPeriod) * 7200}; // ${contractParams.votingPeriod} days
     }
 
     // Proposal threshold: Minimum number of votes needed to create a proposal
@@ -414,10 +413,380 @@ contract ${contractParams.name.replace(/\s+/g, '')}DAO is Governor, GovernorSett
         return super.supportsInterface(interfaceId);
     }
 }`;
+    } else if (selectedType === 'marketplace') {
+      return `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+
+contract ${contractParams.name.replace(/\s+/g, '')}Marketplace is ReentrancyGuard, Ownable {
+    
+    struct Listing {
+        address seller;
+        address nftContract;
+        uint256 tokenId;
+        uint256 price;
+        bool active;
+        uint256 deadline;
+    }
+
+    struct Auction {
+        address seller;
+        address nftContract;
+        uint256 tokenId;
+        uint256 startingPrice;
+        uint256 highestBid;
+        address highestBidder;
+        uint256 deadline;
+        bool active;
+    }
+
+    mapping(bytes32 => Listing) public listings;
+    mapping(bytes32 => Auction) public auctions;
+    mapping(address => uint256) public pendingWithdrawals;
+    
+    uint256 public platformFee = ${parseFloat(contractParams.feePercent) * 100}; // ${contractParams.feePercent}%
+    uint256 private constant FEE_DENOMINATOR = 10000;
+    
+    event ItemListed(bytes32 indexed listingId, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 price);
+    event ItemSold(bytes32 indexed listingId, address indexed buyer, uint256 price);
+    event AuctionCreated(bytes32 indexed auctionId, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 startingPrice, uint256 deadline);
+    event BidPlaced(bytes32 indexed auctionId, address indexed bidder, uint256 amount);
+    event AuctionEnded(bytes32 indexed auctionId, address indexed winner, uint256 amount);
+
+    constructor() {}
+
+    function listItem(address nftContract, uint256 tokenId, uint256 price, uint256 duration) external nonReentrant {
+        require(price > 0, "Price must be greater than 0");
+        require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(IERC721(nftContract).isApprovedForAll(msg.sender, address(this)), "Contract not approved");
+
+        bytes32 listingId = keccak256(abi.encodePacked(nftContract, tokenId, msg.sender, block.timestamp));
+        
+        listings[listingId] = Listing({
+            seller: msg.sender,
+            nftContract: nftContract,
+            tokenId: tokenId,
+            price: price,
+            active: true,
+            deadline: block.timestamp + duration
+        });
+
+        emit ItemListed(listingId, msg.sender, nftContract, tokenId, price);
+    }
+
+    function buyItem(bytes32 listingId) external payable nonReentrant {
+        Listing storage listing = listings[listingId];
+        require(listing.active, "Listing not active");
+        require(block.timestamp <= listing.deadline, "Listing expired");
+        require(msg.value >= listing.price, "Insufficient payment");
+
+        listing.active = false;
+        
+        uint256 fee = (listing.price * platformFee) / FEE_DENOMINATOR;
+        uint256 royalty = 0;
+        address royaltyRecipient = address(0);
+
+        // Check for royalties
+        if (IERC165(listing.nftContract).supportsInterface(type(IERC2981).interfaceId)) {
+            (royaltyRecipient, royalty) = IERC2981(listing.nftContract).royaltyInfo(listing.tokenId, listing.price);
+        }
+
+        uint256 sellerProceeds = listing.price - fee - royalty;
+
+        // Transfer NFT
+        IERC721(listing.nftContract).safeTransferFrom(listing.seller, msg.sender, listing.tokenId);
+
+        // Transfer payments
+        payable(listing.seller).transfer(sellerProceeds);
+        if (royalty > 0 && royaltyRecipient != address(0)) {
+            payable(royaltyRecipient).transfer(royalty);
+        }
+
+        // Refund excess payment
+        if (msg.value > listing.price) {
+            payable(msg.sender).transfer(msg.value - listing.price);
+        }
+
+        emit ItemSold(listingId, msg.sender, listing.price);
+    }
+
+    function createAuction(address nftContract, uint256 tokenId, uint256 startingPrice, uint256 duration) external nonReentrant {
+        require(startingPrice > 0, "Starting price must be greater than 0");
+        require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(IERC721(nftContract).isApprovedForAll(msg.sender, address(this)), "Contract not approved");
+
+        bytes32 auctionId = keccak256(abi.encodePacked(nftContract, tokenId, msg.sender, block.timestamp));
+        
+        auctions[auctionId] = Auction({
+            seller: msg.sender,
+            nftContract: nftContract,
+            tokenId: tokenId,
+            startingPrice: startingPrice,
+            highestBid: 0,
+            highestBidder: address(0),
+            deadline: block.timestamp + duration,
+            active: true
+        });
+
+        emit AuctionCreated(auctionId, msg.sender, nftContract, tokenId, startingPrice, block.timestamp + duration);
+    }
+
+    function placeBid(bytes32 auctionId) external payable nonReentrant {
+        Auction storage auction = auctions[auctionId];
+        require(auction.active, "Auction not active");
+        require(block.timestamp <= auction.deadline, "Auction ended");
+        require(msg.value > auction.highestBid, "Bid too low");
+        require(msg.value >= auction.startingPrice, "Below starting price");
+
+        if (auction.highestBidder != address(0)) {
+            pendingWithdrawals[auction.highestBidder] += auction.highestBid;
+        }
+
+        auction.highestBid = msg.value;
+        auction.highestBidder = msg.sender;
+
+        emit BidPlaced(auctionId, msg.sender, msg.value);
+    }
+
+    function endAuction(bytes32 auctionId) external nonReentrant {
+        Auction storage auction = auctions[auctionId];
+        require(auction.active, "Auction not active");
+        require(block.timestamp > auction.deadline, "Auction still ongoing");
+
+        auction.active = false;
+
+        if (auction.highestBidder != address(0)) {
+            uint256 fee = (auction.highestBid * platformFee) / FEE_DENOMINATOR;
+            uint256 royalty = 0;
+            address royaltyRecipient = address(0);
+
+            // Check for royalties
+            if (IERC165(auction.nftContract).supportsInterface(type(IERC2981).interfaceId)) {
+                (royaltyRecipient, royalty) = IERC2981(auction.nftContract).royaltyInfo(auction.tokenId, auction.highestBid);
+            }
+
+            uint256 sellerProceeds = auction.highestBid - fee - royalty;
+
+            // Transfer NFT to winner
+            IERC721(auction.nftContract).safeTransferFrom(auction.seller, auction.highestBidder, auction.tokenId);
+
+            // Transfer payments
+            payable(auction.seller).transfer(sellerProceeds);
+            if (royalty > 0 && royaltyRecipient != address(0)) {
+                payable(royaltyRecipient).transfer(royalty);
+            }
+
+            emit AuctionEnded(auctionId, auction.highestBidder, auction.highestBid);
+        } else {
+            emit AuctionEnded(auctionId, address(0), 0);
+        }
+    }
+
+    function withdraw() external nonReentrant {
+        uint256 amount = pendingWithdrawals[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+        
+        pendingWithdrawals[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+
+    function updatePlatformFee(uint256 newFee) external onlyOwner {
+        require(newFee <= 1000, "Fee too high"); // Max 10%
+        platformFee = newFee;
+    }
+
+    function withdrawFees() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+}`;
+    } else if (selectedType === 'vesting') {
+      return `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract ${contractParams.name.replace(/\s+/g, '')}Vesting is Ownable, ReentrancyGuard {
+    
+    struct VestingSchedule {
+        address beneficiary;
+        uint256 cliff; // Cliff period in seconds
+        uint256 start; // Start time of the vesting period
+        uint256 duration; // Duration of the vesting period in seconds
+        uint256 slicePeriodSeconds; // Duration of a slice period for the vesting in seconds
+        bool revokable; // Whether the vesting is revokable or not
+        uint256 amountTotal; // Total amount of tokens to be released at the end of the vesting
+        uint256 released; // Amount of tokens released
+        bool revoked; // Whether the vesting has been revoked or not
+    }
+
+    IERC20 private _token;
+    mapping(bytes32 => VestingSchedule) private vestingSchedules;
+    mapping(address => uint256) private holdersVestingCount;
+    bytes32[] private vestingSchedulesIds;
+    uint256 private vestingSchedulesTotalAmount;
+    
+    event VestingScheduleCreated(bytes32 indexed vestingScheduleId, address indexed beneficiary, uint256 amount);
+    event TokensReleased(bytes32 indexed vestingScheduleId, address indexed beneficiary, uint256 amount);
+    event VestingScheduleRevoked(bytes32 indexed vestingScheduleId);
+
+    constructor(address token_) {
+        require(token_ != address(0x0), "Token address cannot be 0");
+        _token = IERC20(token_);
+    }
+
+    function createVestingSchedule(
+        address _beneficiary,
+        uint256 _start,
+        uint256 _cliff,
+        uint256 _duration,
+        uint256 _slicePeriodSeconds,
+        bool _revokable,
+        uint256 _amount
+    ) public onlyOwner {
+        require(getWithdrawableAmount() >= _amount, "Insufficient tokens");
+        require(_duration > 0, "Duration must be > 0");
+        require(_amount > 0, "Amount must be > 0");
+        require(_slicePeriodSeconds >= 1, "Slice period must be >= 1");
+        require(_duration >= _cliff, "Duration must be >= cliff");
+
+        bytes32 vestingScheduleId = computeNextVestingScheduleIdForHolder(_beneficiary);
+        uint256 cliff = _start + _cliff;
+        
+        vestingSchedules[vestingScheduleId] = VestingSchedule(
+            _beneficiary,
+            cliff,
+            _start,
+            _duration,
+            _slicePeriodSeconds,
+            _revokable,
+            _amount,
+            0,
+            false
+        );
+        
+        vestingSchedulesTotalAmount += _amount;
+        vestingSchedulesIds.push(vestingScheduleId);
+        holdersVestingCount[_beneficiary]++;
+        
+        emit VestingScheduleCreated(vestingScheduleId, _beneficiary, _amount);
+    }
+
+    function release(bytes32 vestingScheduleId, uint256 amount) public nonReentrant {
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
+        bool isOwner = msg.sender == owner();
+        require(isBeneficiary || isOwner, "Only beneficiary or owner");
+        require(!vestingSchedule.revoked, "Vesting schedule revoked");
+        
+        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        require(vestedAmount >= amount, "Insufficient vested tokens");
+        
+        vestingSchedule.released += amount;
+        vestingSchedulesTotalAmount -= amount;
+        _token.transfer(vestingSchedule.beneficiary, amount);
+        
+        emit TokensReleased(vestingScheduleId, vestingSchedule.beneficiary, amount);
+    }
+
+    function revoke(bytes32 vestingScheduleId) public onlyOwner {
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        require(vestingSchedule.revokable, "Vesting not revokable");
+        require(!vestingSchedule.revoked, "Already revoked");
+        
+        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        if (vestedAmount > 0) {
+            release(vestingScheduleId, vestedAmount);
+        }
+        
+        uint256 unreleased = vestingSchedule.amountTotal - vestingSchedule.released;
+        vestingSchedulesTotalAmount -= unreleased;
+        vestingSchedule.revoked = true;
+        
+        emit VestingScheduleRevoked(vestingScheduleId);
+    }
+
+    function getVestingSchedule(bytes32 vestingScheduleId) public view returns (VestingSchedule memory) {
+        return vestingSchedules[vestingScheduleId];
+    }
+
+    function getVestingIdAtIndex(uint256 index) external view returns (bytes32) {
+        require(index < vestingSchedulesIds.length, "Index out of bounds");
+        return vestingSchedulesIds[index];
+    }
+
+    function getVestingSchedulesCountByBeneficiary(address _beneficiary) external view returns (uint256) {
+        return holdersVestingCount[_beneficiary];
+    }
+
+    function getVestingScheduleByAddressAndIndex(address holder, uint256 index) external view returns (VestingSchedule memory) {
+        return getVestingSchedule(computeVestingScheduleIdForAddressAndIndex(holder, index));
+    }
+
+    function getVestingSchedulesTotalAmount() external view returns (uint256) {
+        return vestingSchedulesTotalAmount;
+    }
+
+    function getToken() external view returns (address) {
+        return address(_token);
+    }
+
+    function computeReleasableAmount(bytes32 vestingScheduleId) external view returns (uint256) {
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        return _computeReleasableAmount(vestingSchedule);
+    }
+
+    function getWithdrawableAmount() public view returns (uint256) {
+        return _token.balanceOf(address(this)) - vestingSchedulesTotalAmount;
+    }
+
+    function computeNextVestingScheduleIdForHolder(address holder) public view returns (bytes32) {
+        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder]);
+    }
+
+    function computeVestingScheduleIdForAddressAndIndex(address holder, uint256 index) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(holder, index));
+    }
+
+    function _computeReleasableAmount(VestingSchedule memory vestingSchedule) internal view returns (uint256) {
+        uint256 currentTime = getCurrentTime();
+        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked) {
+            return 0;
+        } else if (currentTime >= vestingSchedule.start + vestingSchedule.duration) {
+            return vestingSchedule.amountTotal - vestingSchedule.released;
+        } else {
+            uint256 timeFromStart = currentTime - vestingSchedule.start;
+            uint256 secondsPerSlice = vestingSchedule.slicePeriodSeconds;
+            uint256 vestedSlicePeriods = timeFromStart / secondsPerSlice;
+            uint256 vestedSeconds = vestedSlicePeriods * secondsPerSlice;
+            uint256 vestedAmount = (vestingSchedule.amountTotal * vestedSeconds) / vestingSchedule.duration;
+            return vestedAmount - vestingSchedule.released;
+        }
+    }
+
+    function getCurrentTime() internal view virtual returns (uint256) {
+        return block.timestamp;
+    }
+
+    function withdraw(uint256 amount) public onlyOwner {
+        require(getWithdrawableAmount() >= amount, "Not enough withdrawable funds");
+        _token.transfer(owner(), amount);
+    }
+}`;
     }
     
-    return `// ${selectedContract?.name} contract template coming soon...
-// This will be a fully functional ${selectedContract?.desc}`;
+    return `// Contract template for ${selectedContract?.name} is being prepared...
+// This will be a fully functional ${selectedContract?.desc}
+
+contract ${contractParams.name.replace(/\s+/g, '')} {
+    // Implementation coming soon...
+}`;
   };
 
   const copyToClipboard = () => {
@@ -463,26 +832,34 @@ contract ${contractParams.name.replace(/\s+/g, '')}DAO is Governor, GovernorSett
   const selectedContractType = contractTypes.find(type => type.id === selectedType);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden group hover:shadow-2xl transition-all duration-300">
-      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-pink-50">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-purple-600 rounded-lg">
-            <Wand2 className="h-6 w-6 text-white" />
+    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <div className="p-8 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg">
+            <Wand2 className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-900">AI Contract Generator</h3>
-            <p className="text-slate-600">Professional-grade smart contract creation</p>
+            <h3 className="text-2xl font-bold text-slate-900">AI Contract Generator</h3>
+            <p className="text-slate-600 mt-1">Professional-grade smart contract creation with guided wizard</p>
           </div>
         </div>
       </div>
       
-      <div className="p-6">
+      <div className="p-8">
         <Tabs value={step.toString()} onValueChange={(value) => setStep(parseInt(value))} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="1">Select Type</TabsTrigger>
-            <TabsTrigger value="2">Configure</TabsTrigger>
-            <TabsTrigger value="3">Generate</TabsTrigger>
-            <TabsTrigger value="4">Deploy</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="1" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Select Type
+            </TabsTrigger>
+            <TabsTrigger value="2" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Configure
+            </TabsTrigger>
+            <TabsTrigger value="3" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Generate
+            </TabsTrigger>
+            <TabsTrigger value="4" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Deploy
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="1" className="space-y-4 mt-4">

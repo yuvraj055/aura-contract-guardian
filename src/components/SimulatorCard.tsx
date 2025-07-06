@@ -1,550 +1,484 @@
-
 import React, { useState } from 'react';
-import { Zap, BarChart3, TrendingDown, Gauge, Play, Settings, Target, Activity, Clock, DollarSign } from 'lucide-react';
+import { Activity, Upload, Play, Download, FileText, TrendingDown, Zap, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export const SimulatorCard = () => {
-  const [activeTab, setActiveTab] = useState('simulate');
   const [contractCode, setContractCode] = useState('');
-  const [selectedFunction, setSelectedFunction] = useState('transfer');
-  const [selectedScenario, setSelectedScenario] = useState('normal');
-  const [simulationParams, setSimulationParams] = useState({
-    gasPrice: '20',
-    gasLimit: '100000',
-    value: '0',
-    iterations: '1'
-  });
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationResults, setSimulationResults] = useState<any>(null);
-  const [detailedAnalysis, setDetailedAnalysis] = useState<any>(null);
-  
-  const gasData = {
-    transfer: { 
-      current: 51000, 
-      optimized: 42000, 
-      savings: 18, 
-      cost: '₹234',
-      breakdown: {
-        'Storage reads': 15400,
-        'Storage writes': 20000,
-        'Computation': 8600,
-        'Transaction overhead': 7000
-      }
-    },
-    mint: { 
-      current: 78000, 
-      optimized: 65000, 
-      savings: 17, 
-      cost: '₹356',
-      breakdown: {
-        'Storage reads': 20400,
-        'Storage writes': 40000,
-        'Event emission': 8600,
-        'Access control': 9000
-      }
-    },
-    burn: { 
-      current: 32000, 
-      optimized: 28000, 
-      savings: 12, 
-      cost: '₹145',
-      breakdown: {
-        'Storage reads': 10400,
-        'Storage writes': 15000,
-        'Balance check': 3600,
-        'Event emission': 3000
-      }
-    },
-    approve: { 
-      current: 46000, 
-      optimized: 39000, 
-      savings: 15, 
-      cost: '₹210',
-      breakdown: {
-        'Storage writes': 20000,
-        'Input validation': 5000,
-        'Event emission': 8000,
-        'Access control': 13000
-      }
-    },
-    transferFrom: { 
-      current: 55000, 
-      optimized: 47000, 
-      savings: 14, 
-      cost: '₹251',
-      breakdown: {
-        'Allowance check': 15400,
-        'Balance updates': 25000,
-        'Event emissions': 8600,
-        'Input validation': 6000
-      }
-    }
-  };
+  const [simulationResults, setSimulationResults<any>(null);
+  const [selectedScenario, setSelectedScenario] = useState('standard');
+  const [gasPrice, setGasPrice] = useState('20');
 
-  const functions = [
-    { id: 'transfer', name: 'transfer()', color: 'bg-blue-500', params: ['to', 'amount'], complexity: 'Low' },
-    { id: 'mint', name: 'mint()', color: 'bg-green-500', params: ['to', 'amount'], complexity: 'Medium' },
-    { id: 'burn', name: 'burn()', color: 'bg-red-500', params: ['amount'], complexity: 'Low' },
-    { id: 'approve', name: 'approve()', color: 'bg-purple-500', params: ['spender', 'amount'], complexity: 'Low' },
-    { id: 'transferFrom', name: 'transferFrom()', color: 'bg-yellow-500', params: ['from', 'to', 'amount'], complexity: 'High' }
-  ];
-
-  const scenarios = [
-    { 
-      id: 'normal', 
-      name: 'Normal Usage', 
-      multiplier: 1, 
-      desc: 'Standard transaction conditions',
-      gasPrice: 20,
-      networkLoad: 'Low'
-    },
-    { 
-      id: 'congested', 
-      name: 'Network Congestion', 
-      multiplier: 2.5, 
-      desc: 'High gas price scenario',
-      gasPrice: 50,
-      networkLoad: 'High'
-    },
-    { 
-      id: 'batch', 
-      name: 'Batch Operations', 
-      multiplier: 0.7, 
-      desc: 'Multiple operations optimization',
-      gasPrice: 15,
-      networkLoad: 'Medium'
-    },
-    { 
-      id: 'defi', 
-      name: 'DeFi Integration', 
-      multiplier: 3, 
-      desc: 'Complex DeFi interactions',
-      gasPrice: 80,
-      networkLoad: 'Very High'
-    }
-  ];
-
-  const runSimulation = async () => {
+  // Enhanced simulation data with more realistic gas analysis
+  const simulateContract = async () => {
     if (!contractCode.trim()) {
-      toast.error('Please upload or paste contract code first');
+      toast.error('Please upload or paste a contract first');
       return;
     }
 
     setIsSimulating(true);
-    toast.info('Initializing gas simulation...');
+    toast.info('Starting gas simulation...');
 
     setTimeout(() => {
-      toast.info('Analyzing contract bytecode...');
+      toast.info('Analyzing contract functions...');
     }, 1000);
 
     setTimeout(() => {
-      toast.info('Running execution scenarios...');
+      toast.info('Running optimization analysis...');
     }, 2500);
 
     setTimeout(() => {
-      const data = gasData[selectedFunction as keyof typeof gasData];
-      const scenario = scenarios.find(s => s.id === selectedScenario) || scenarios[0];
-      
-      const baseGas = data.current;
-      const adjustedGas = Math.floor(baseGas * scenario.multiplier);
-      const gasPrice = parseInt(simulationParams.gasPrice);
-      const iterations = parseInt(simulationParams.iterations);
-      
-      const results = {
-        function: selectedFunction,
-        scenario: scenario.name,
-        gasUsed: adjustedGas,
-        gasPrice: gasPrice,
-        totalCost: (adjustedGas * gasPrice / 1e9).toFixed(6),
-        optimizedGas: data.optimized,
-        optimizedCost: (data.optimized * gasPrice / 1e9).toFixed(6),
-        savings: data.savings,
-        iterations: iterations,
-        totalGasUsed: adjustedGas * iterations,
-        breakdown: data.breakdown,
-        networkConditions: {
-          congestion: scenario.networkLoad,
-          estimatedConfirmation: scenario.multiplier > 2 ? '2-5 minutes' : '30-60 seconds',
-          successProbability: scenario.multiplier > 2 ? '85%' : '98%'
-        },
-        recommendations: [
-          'Use unchecked blocks for safe arithmetic operations (-200 gas)',
-          'Pack struct variables to optimize storage (-800 gas)',
-          'Cache array length in loops (-150 gas per iteration)',
-          'Use custom errors instead of revert strings (-500 gas)',
-          'Optimize storage slot usage (-2000 gas)',
-          'Implement gas-efficient event patterns (-300 gas)'
+      const mockResults = {
+        totalGasUsed: 2456789,
+        optimizedGasUsed: 1834567,
+        savingsPercent: 25.3,
+        savingsEth: 0.0124,
+        savingsUsd: 28.45,
+        functions: [
+          {
+            name: 'mint',
+            gasUsed: 89432,
+            optimizedGas: 67324,
+            savings: 24.7,
+            severity: 'medium',
+            suggestions: ['Use _mint instead of mint for internal calls', 'Cache array length in loops']
+          },
+          {
+            name: 'transfer',
+            gasUsed: 52341,
+            optimizedGas: 41256,
+            savings: 21.2,
+            severity: 'low',
+            suggestions: ['Remove redundant checks', 'Use unchecked blocks for safe operations']
+          },
+          {
+            name: 'approve',
+            gasUsed: 34567,
+            optimizedGas: 29123,
+            savings: 15.7,
+            severity: 'low',
+            suggestions: ['Optimize storage reads', 'Use events more efficiently']
+          },
+          {
+            name: 'transferFrom',
+            gasUsed: 76543,
+            optimizedGas: 56789,
+            savings: 25.8,
+            severity: 'high',
+            suggestions: ['Remove duplicate allowance checks', 'Batch operations when possible']
+          }
         ],
-        costAnalysis: {
-          daily: (adjustedGas * gasPrice / 1e9 * 100).toFixed(4),
-          monthly: (adjustedGas * gasPrice / 1e9 * 3000).toFixed(4),
-          yearly: (adjustedGas * gasPrice / 1e9 * 36500).toFixed(4)
-        }
+        scenarios: {
+          standard: { gasUsed: 2456789, cost: 28.45 },
+          lowTraffic: { gasUsed: 1876543, cost: 21.7 },
+          highTraffic: { gasUsed: 3234567, cost: 37.2 },
+          optimized: { gasUsed: 1834567, cost: 21.2 }
+        },
+        optimizations: [
+          {
+            type: 'Storage Optimization',
+            description: 'Pack struct variables to save storage slots',
+            impact: 'High',
+            savings: '15%'
+          },
+          {
+            type: 'Loop Optimization',
+            description: 'Cache array length and use unchecked increments',
+            impact: 'Medium',
+            savings: '8%'
+          },
+          {
+            type: 'Function Visibility',
+            description: 'Make functions external where possible',
+            impact: 'Low',
+            savings: '3%'
+          }
+        ]
       };
-      
-      setSimulationResults(results);
-      
-      // Generate detailed analysis
-      setDetailedAnalysis({
-        efficiency: {
-          score: 100 - data.savings,
-          grade: data.savings > 20 ? 'C' : data.savings > 10 ? 'B' : 'A',
-          issues: [
-            'Multiple storage reads detected',
-            'Inefficient loop patterns found',
-            'Redundant computation identified'
-          ]
-        },
-        security: {
-          gasLimit: adjustedGas < 100000 ? 'Safe' : 'Caution',
-          reentrancy: 'Protected',
-          overflow: 'Safe (Solidity 0.8+)'
-        },
-        optimization: {
-          potential: `${data.savings}% reduction possible`,
-          impact: 'High',
-          effort: 'Medium'
-        }
-      });
-      
+
+      setSimulationResults(mockResults);
       setIsSimulating(false);
-      setActiveTab('results');
-      toast.success('Gas simulation completed with detailed analysis!');
+      toast.success('Simulation completed! Found optimization opportunities.');
     }, 4000);
   };
 
-  const optimizeContract = () => {
+  const downloadGasReport = () => {
     if (!simulationResults) {
-      toast.error('Run a simulation first');
+      toast.error('No simulation results to download');
       return;
     }
-    
-    toast.info('Applying gas optimizations...');
-    setTimeout(() => {
-      toast.success('Optimizations applied! Gas usage reduced by ' + simulationResults.savings + '%');
-    }, 2000);
+
+    const reportContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Gas Optimization Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 2.5em; font-weight: bold; }
+        .header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 1.1em; }
+        .content { padding: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #f1f5f9; border-radius: 8px; padding: 20px; text-align: center; border-left: 4px solid #10b981; }
+        .stat-card h3 { margin: 0 0 10px 0; color: #1e293b; font-size: 1.8em; font-weight: bold; }
+        .stat-card p { margin: 0; color: #64748b; font-size: 0.9em; }
+        .section { margin-bottom: 30px; }
+        .section h2 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; }
+        .function-analysis { background: #fafafa; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .function-header { display: flex; justify-content: between; align-items: center; margin-bottom: 15px; }
+        .function-name { font-weight: bold; font-size: 1.2em; color: #1e293b; }
+        .severity { padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+        .severity.high { background: #fecaca; color: #dc2626; }
+        .severity.medium { background: #fde68a; color: #d97706; }
+        .severity.low { background: #d1fae5; color: #059669; }
+        .gas-comparison { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .gas-metric { text-align: center; padding: 10px; background: white; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .gas-metric .value { font-size: 1.4em; font-weight: bold; color: #1e293b; }
+        .gas-metric .label { font-size: 0.9em; color: #64748b; margin-top: 5px; }
+        .suggestions { margin-top: 15px; }
+        .suggestions ul { margin: 0; padding-left: 20px; }
+        .suggestions li { margin-bottom: 8px; color: #475569; }
+        .footer { background: #1e293b; color: white; padding: 20px; text-align: center; font-size: 0.9em; }
+        .savings-highlight { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .optimization-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+        .optimization-card h4 { margin: 0 0 8px 0; color: #1e293b; }
+        .impact { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75em; font-weight: bold; }
+        .impact.high { background: #fecaca; color: #dc2626; }
+        .impact.medium { background: #fde68a; color: #d97706; }
+        .impact.low { background: #d1fae5; color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Gas Optimization Report</h1>
+            <p>Generated on ${new Date().toLocaleDateString()} • SecureChain Platform</p>
+        </div>
+        
+        <div class="content">
+            <div class="summary">
+                <div class="stat-card">
+                    <h3>${simulationResults.totalGasUsed.toLocaleString()}</h3>
+                    <p>Original Gas Usage</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${simulationResults.optimizedGasUsed.toLocaleString()}</h3>
+                    <p>Optimized Gas Usage</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${simulationResults.savingsPercent}%</h3>
+                    <p>Gas Savings</p>
+                </div>
+                <div class="stat-card">
+                    <h3>$${simulationResults.savingsUsd}</h3>
+                    <p>Cost Savings (USD)</p>
+                </div>
+            </div>
+
+            <div class="savings-highlight">
+                <h2 style="margin: 0 0 10px 0;">💰 Potential Savings</h2>
+                <p style="margin: 0; font-size: 1.1em;">You can save <strong>${simulationResults.savingsPercent}%</strong> on gas costs, equivalent to <strong>${simulationResults.savingsEth} ETH</strong> or <strong>$${simulationResults.savingsUsd} USD</strong> per transaction cycle.</p>
+            </div>
+
+            <div class="section">
+                <h2>🔍 Function Analysis</h2>
+                ${simulationResults.functions.map((func: any) => `
+                    <div class="function-analysis">
+                        <div class="function-header">
+                            <span class="function-name">${func.name}()</span>
+                            <span class="severity ${func.severity}">${func.severity} impact</span>
+                        </div>
+                        <div class="gas-comparison">
+                            <div class="gas-metric">
+                                <div class="value">${func.gasUsed.toLocaleString()}</div>
+                                <div class="label">Current Gas</div>
+                            </div>
+                            <div class="gas-metric">
+                                <div class="value">${func.optimizedGas.toLocaleString()}</div>
+                                <div class="label">Optimized Gas</div>
+                            </div>
+                            <div class="gas-metric">
+                                <div class="value" style="color: #10b981;">${func.savings}%</div>
+                                <div class="label">Savings</div>
+                            </div>
+                        </div>
+                        <div class="suggestions">
+                            <strong>Optimization Suggestions:</strong>
+                            <ul>
+                                ${func.suggestions.map((suggestion: string) => `<li>${suggestion}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="section">
+                <h2>🚀 Optimization Recommendations</h2>
+                ${simulationResults.optimizations.map((opt: any) => `
+                    <div class="optimization-card">
+                        <h4>${opt.type} <span class="impact ${opt.impact.toLowerCase()}">${opt.impact} Impact</span></h4>
+                        <p>${opt.description}</p>
+                        <p><strong>Potential Savings:</strong> ${opt.savings}</p>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="section">
+                <h2>📊 Scenario Analysis</h2>
+                <div class="gas-comparison">
+                    <div class="gas-metric">
+                        <div class="value">${simulationResults.scenarios.standard.gasUsed.toLocaleString()}</div>
+                        <div class="label">Standard Load</div>
+                    </div>
+                    <div class="gas-metric">
+                        <div class="value">${simulationResults.scenarios.highTraffic.gasUsed.toLocaleString()}</div>
+                        <div class="label">High Traffic</div>
+                    </div>
+                    <div class="gas-metric">
+                        <div class="value" style="color: #10b981;">${simulationResults.scenarios.optimized.gasUsed.toLocaleString()}</div>
+                        <div class="label">Optimized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Report generated by SecureChain Platform | For technical support, contact support@securechain.dev</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([reportContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gas-optimization-report-${Date.now()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Gas optimization report downloaded!');
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setContractCode(content);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleCodePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    event.preventDefault();
+    const text = event.clipboardData.getData('text/plain');
+    setContractCode(text);
+  };
+
+  const handleScenarioChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedScenario(event.target.value);
+  };
+
+  const handleGasPriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setGasPrice(event.target.value);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden group hover:shadow-2xl transition-all duration-300">
-      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-green-50 to-emerald-50">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-600 rounded-lg">
-            <Zap className="h-6 w-6 text-white" />
+    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <div className="p-8 border-b border-slate-200 bg-gradient-to-r from-green-50 to-emerald-50">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg">
+            <Activity className="h-8 w-8 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-900">Gas Simulator & Optimizer</h3>
-            <p className="text-slate-600">Advanced gas analysis & cost optimization</p>
+            <h3 className="text-2xl font-bold text-slate-900">Gas Simulator & Optimizer</h3>
+            <p className="text-slate-600 mt-1">Optimize gas usage and simulate contract execution scenarios</p>
           </div>
         </div>
       </div>
       
-      <div className="p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="simulate">Simulate</TabsTrigger>
-            <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
-            <TabsTrigger value="optimize">Optimize</TabsTrigger>
+      <div className="p-8">
+        <Tabs defaultValue="simulate" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="simulate" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              Simulate
+            </TabsTrigger>
+            <TabsTrigger value="optimize" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              Optimize
+            </TabsTrigger>
+            <TabsTrigger value="report" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              Report
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="simulate" className="space-y-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Contract Code
-              </label>
+          <TabsContent value="report" className="space-y-6">
+            <div className="text-center">
+              <h4 className="text-xl font-bold text-slate-900 mb-2">Download Optimization Report</h4>
+              <p className="text-slate-600 mb-6">Generate a comprehensive report with all optimization findings</p>
+              
+              {simulationResults ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="text-green-600 font-bold text-2xl">{simulationResults.savingsPercent}%</div>
+                      <div className="text-sm text-slate-600">Gas Savings</div>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="text-blue-600 font-bold text-2xl">${simulationResults.savingsUsd}</div>
+                      <div className="text-sm text-slate-600">Cost Savings</div>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <div className="text-purple-600 font-bold text-2xl">{simulationResults.functions.length}</div>
+                      <div className="text-sm text-slate-600">Functions Analyzed</div>
+                    </div>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="text-yellow-600 font-bold text-2xl">{simulationResults.optimizations.length}</div>
+                      <div className="text-sm text-slate-600">Optimizations</div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={downloadGasReport}
+                    className="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-8 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg flex items-center space-x-2 mx-auto"
+                  >
+                    <Download className="h-5 w-5" />
+                    <span>Download Full Report</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500">Run a simulation first to generate a report</p>
+                  <button
+                    onClick={() => document.querySelector('[value="simulate"]')?.click()}
+                    className="mt-4 text-green-600 hover:text-green-700 font-medium"
+                  >
+                    Go to Simulation →
+                  </button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="simulate" className="space-y-6">
+            <div className="space-y-4">
+              <h4 className="text-xl font-bold text-slate-900">Upload or Paste Contract Code</h4>
+              <p className="text-slate-600">Analyze gas usage and identify potential optimizations</p>
+              
+              <div className="flex items-center space-x-4">
+                <label className="relative cursor-pointer bg-slate-100 hover:bg-slate-200 rounded-lg py-3 px-6 font-medium text-slate-700 transition-colors">
+                  <Upload className="h-4 w-4 inline-block mr-2" />
+                  <span>Upload File</span>
+                  <input type="file" className="absolute inset-0 opacity-0" onChange={handleFileUpload} />
+                </label>
+                <span className="text-sm text-slate-500">or paste code below</span>
+              </div>
+              
               <textarea
-                placeholder="Paste your contract code here..."
+                placeholder="// Paste your smart contract code here"
+                className="w-full h-48 p-4 bg-slate-50 rounded-lg border border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                 value={contractCode}
                 onChange={(e) => setContractCode(e.target.value)}
-                className="w-full h-32 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm"
+                onPaste={handleCodePaste}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Function to Test
+                  Select Scenario
                 </label>
                 <select
-                  value={selectedFunction}
-                  onChange={(e) => setSelectedFunction(e.target.value)}
+                  value={selectedScenario}
+                  onChange={handleScenarioChange}
                   className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  {functions.map((func) => (
-                    <option key={func.id} value={func.id}>
-                      {func.name} ({func.complexity})
-                    </option>
-                  ))}
+                  <option value="standard">Standard Load</option>
+                  <option value="lowTraffic">Low Traffic</option>
+                  <option value="highTraffic">High Traffic</option>
                 </select>
               </div>
-
+              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Gas Price (Gwei)
                 </label>
                 <input
                   type="number"
-                  value={simulationParams.gasPrice}
-                  onChange={(e) => setSimulationParams(prev => ({ ...prev, gasPrice: e.target.value }))}
+                  placeholder="20"
+                  value={gasPrice}
+                  onChange={handleGasPriceChange}
                   className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Simulation Scenarios
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {scenarios.map((scenario) => (
-                  <button
-                    key={scenario.id}
-                    onClick={() => setSelectedScenario(scenario.id)}
-                    className={`p-3 text-left border rounded-lg transition-colors ${
-                      selectedScenario === scenario.id
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-slate-200 hover:border-green-300 hover:bg-green-50'
-                    }`}
-                  >
-                    <div className="font-medium text-slate-900 text-sm">{scenario.name}</div>
-                    <div className="text-xs text-slate-600">{scenario.desc}</div>
-                    <div className="text-xs text-green-600 mt-1">{scenario.gasPrice} Gwei</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Iterations
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={simulationParams.iterations}
-                  onChange={(e) => setSimulationParams(prev => ({ ...prev, iterations: e.target.value }))}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Gas Limit
-                </label>
-                <input
-                  type="number"
-                  value={simulationParams.gasLimit}
-                  onChange={(e) => setSimulationParams(prev => ({ ...prev, gasLimit: e.target.value }))}
-                  className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
+            
             <button
-              onClick={runSimulation}
-              disabled={isSimulating}
-              className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-semibold py-3 px-6 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 shadow-lg disabled:opacity-50 flex items-center justify-center space-x-2"
+              onClick={simulateContract}
+              disabled={isSimulating || !contractCode.trim()}
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isSimulating ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-900 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                   <span>Simulating...</span>
                 </>
               ) : (
                 <>
-                  <Play className="h-4 w-4" />
-                  <span>Run Advanced Simulation</span>
+                  <Play className="h-5 w-5" />
+                  <span>Run Simulation</span>
                 </>
               )}
             </button>
           </TabsContent>
 
-          <TabsContent value="results" className="space-y-4 mt-4">
+          <TabsContent value="optimize" className="space-y-6">
             {simulationResults ? (
-              <>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-slate-900">Simulation Results</h4>
-                    <span className="text-sm text-slate-600">Scenario: {simulationResults.scenario}</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="bg-white p-3 rounded-lg">
-                      <div className="text-sm text-slate-600">Current Gas Usage</div>
-                      <div className="text-xl font-bold text-red-600">{simulationResults.gasUsed.toLocaleString()}</div>
-                      <div className="text-sm text-slate-500">≈ {simulationResults.totalCost} ETH</div>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg">
-                      <div className="text-sm text-slate-600">Optimized Gas Usage</div>
-                      <div className="text-xl font-bold text-green-600">{simulationResults.optimizedGas.toLocaleString()}</div>
-                      <div className="text-sm text-slate-500">≈ {simulationResults.optimizedCost} ETH</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-lg mb-4">
-                    <div className="text-sm text-slate-600 mb-2">Gas Breakdown</div>
-                    {Object.entries(simulationResults.breakdown).map(([operation, gas]) => (
-                      <div key={operation} className="flex justify-between items-center mb-1">
-                        <span className="text-sm text-slate-700">{operation}</span>
-                        <span className="text-sm font-medium">{(gas as number).toLocaleString()} gas</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-white p-2 rounded text-center">
-                      <div className="text-xs text-slate-600">Network</div>
-                      <div className="font-medium text-sm">{simulationResults.networkConditions.congestion}</div>
-                    </div>
-                    <div className="bg-white p-2 rounded text-center">
-                      <div className="text-xs text-slate-600">Confirmation</div>
-                      <div className="font-medium text-sm">{simulationResults.networkConditions.estimatedConfirmation}</div>
-                    </div>
-                    <div className="bg-white p-2 rounded text-center">
-                      <div className="text-xs text-slate-600">Success Rate</div>
-                      <div className="font-medium text-sm text-green-600">{simulationResults.networkConditions.successProbability}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-slate-900">Cost Analysis</span>
-                    <span className="text-lg font-semibold text-green-600">{simulationResults.savings}% Savings</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="text-center">
-                      <div className="text-xs text-slate-600">Daily</div>
-                      <div className="font-medium text-sm">{simulationResults.costAnalysis.daily} ETH</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-slate-600">Monthly</div>
-                      <div className="font-medium text-sm">{simulationResults.costAnalysis.monthly} ETH</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-slate-600">Yearly</div>
-                      <div className="font-medium text-sm">{simulationResults.costAnalysis.yearly} ETH</div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600">Run a simulation to see detailed results</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="analysis" className="space-y-4 mt-4">
-            {detailedAnalysis ? (
               <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-slate-900">Efficiency Analysis</h4>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-blue-600">{detailedAnalysis.efficiency.score}/100</span>
-                      <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-sm font-medium">
-                        Grade {detailedAnalysis.efficiency.grade}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-slate-700">Identified Issues:</div>
-                    {detailedAnalysis.efficiency.issues.map((issue: string, idx: number) => (
-                      <div key={idx} className="flex items-center space-x-2 text-sm text-slate-600">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                        <span>{issue}</span>
+                <h4 className="text-xl font-bold text-slate-900">Optimization Opportunities</h4>
+                <p className="text-slate-600">Review the identified optimizations and apply them to your contract</p>
+                
+                <div className="space-y-3">
+                  {simulationResults.optimizations.map((opt: any, index: number) => (
+                    <div key={index} className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-slate-900">{opt.type}</h5>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          opt.impact === 'High' ? 'bg-red-100 text-red-600' :
+                          opt.impact === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-green-100 text-green-600'
+                        }`}>
+                          {opt.impact} Impact
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-3">Security Assessment</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center">
-                      <div className="text-sm text-slate-600">Gas Limit</div>
-                      <div className={`font-medium ${detailedAnalysis.security.gasLimit === 'Safe' ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {detailedAnalysis.security.gasLimit}
-                      </div>
+                      <p className="text-sm text-slate-600">{opt.description}</p>
+                      <div className="text-xs text-slate-500 mt-2">Potential Savings: {opt.savings}</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-sm text-slate-600">Reentrancy</div>
-                      <div className="font-medium text-green-600">{detailedAnalysis.security.reentrancy}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-sm text-slate-600">Overflow</div>
-                      <div className="font-medium text-green-600">{detailedAnalysis.security.overflow}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-3">Optimization Potential</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Reduction Potential:</span>
-                      <span className="font-medium text-purple-600">{detailedAnalysis.optimization.potential}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Impact Level:</span>
-                      <span className="font-medium">{detailedAnalysis.optimization.impact}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Implementation Effort:</span>
-                      <span className="font-medium">{detailedAnalysis.optimization.effort}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Activity className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600">Run a simulation to see detailed analysis</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="optimize" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <h5 className="font-medium text-slate-900">Available Optimizations</h5>
-              {simulationResults?.recommendations.map((rec: string, idx: number) => (
-                <div key={idx} className="flex items-start space-x-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <Target className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-slate-700">{rec}</span>
-                </div>
-              )) || (
-                <div className="text-center py-8">
-                  <Settings className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600">Run a simulation to see optimization suggestions</p>
-                </div>
-              )}
-            </div>
-            
-            {simulationResults && (
-              <>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Gauge className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-slate-900">Estimated Savings</span>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600">{simulationResults.savings}%</div>
-                  <div className="text-sm text-slate-600">
-                    {simulationResults.costAnalysis.monthly} ETH monthly savings
-                  </div>
+                  ))}
                 </div>
                 
-                <button 
-                  onClick={optimizeContract}
-                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-semibold py-3 px-6 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 shadow-lg"
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center space-x-3">
+                  <Zap className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-blue-800">Apply these optimizations to reduce gas costs and improve contract efficiency</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <AlertTriangle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">Run a simulation first to view optimization suggestions</p>
+                <button
+                  onClick={() => document.querySelector('[value="simulate"]')?.click()}
+                  className="mt-4 text-green-600 hover:text-green-700 font-medium"
                 >
-                  Apply Gas Optimizations
+                  Go to Simulation →
                 </button>
-              </>
+              </div>
             )}
           </TabsContent>
         </Tabs>

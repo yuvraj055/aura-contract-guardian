@@ -1,51 +1,45 @@
-
 import React, { useState } from 'react';
 import { Shield, Home, FileSearch, Wrench, Settings, User, Bell, ChevronDown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 export const Navigation = () => {
-  const [activeNav, setActiveNav] = useState('Dashboard');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const location = useLocation();
   
   const navItems = [
     { name: 'Dashboard', icon: Home, path: '/' },
-    { name: 'Audits', icon: Shield, path: '/audits' },
-    { name: 'Generate', icon: FileSearch, path: '/generate' },
-    { name: 'Simulate', icon: Wrench, path: '/simulate' },
+    { name: 'Auditor', icon: Shield, path: '/auditor' },
+    { name: 'Generator', icon: FileSearch, path: '/generator' },
+    { name: 'Simulator', icon: Wrench, path: '/simulator' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
-
-  const handleNavClick = (itemName: string) => {
-    setActiveNav(itemName);
-    // Here you would typically handle routing
-    console.log(`Navigating to ${itemName}`);
-  };
 
   return (
     <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-40">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-2 cursor-pointer">
+            <Link to="/" className="flex items-center space-x-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
                 SecureChain
               </span>
-            </div>
+            </Link>
             
             <div className="hidden md:flex space-x-1">
               {navItems.map((item) => (
-                <button
+                <Link
                   key={item.name}
-                  onClick={() => handleNavClick(item.name)}
+                  to={item.path}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    activeNav === item.name
+                    location.pathname === item.path
                       ? 'bg-blue-600 text-white shadow-lg' 
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.name}</span>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
@@ -100,18 +94,18 @@ export const Navigation = () => {
       <div className="md:hidden border-t border-slate-700">
         <div className="px-6 py-2 space-y-1">
           {navItems.map((item) => (
-            <button
+            <Link
               key={item.name}
-              onClick={() => handleNavClick(item.name)}
+              to={item.path}
               className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                activeNav === item.name
+                location.pathname === item.path
                   ? 'bg-blue-600 text-white' 
                   : 'text-slate-300 hover:text-white hover:bg-slate-700'
               }`}
             >
               <item.icon className="h-4 w-4" />
               <span>{item.name}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
