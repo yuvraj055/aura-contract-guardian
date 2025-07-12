@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Zap, Shield, TrendingUp, Activity, Clock, Users, Target, Award, ChevronRight, Sparkles } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 export const DashboardHeader = () => {
+  const { theme } = useTheme();
   const [stats, setStats] = useState({
     contractsAudited: 1247,
     vulnerabilitiesFound: 532,
@@ -78,6 +79,13 @@ export const DashboardHeader = () => {
     }
   ];
 
+  const getLogoSrc = () => {
+    if (theme === 'dark') {
+      return '/lovable-uploads/1ba3cc55-41ab-4665-8b60-eb38c610525a.png';
+    }
+    return '/lovable-uploads/58692659-657a-43cf-a759-aa079b070b74.png';
+  };
+
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-foreground via-foreground/95 to-foreground text-background">
       {/* Enhanced Background Pattern */}
@@ -97,12 +105,16 @@ export const DashboardHeader = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-primary/30 rounded-3xl blur-xl"></div>
               <div className="relative p-4 bg-primary/20 backdrop-blur-md rounded-3xl border border-primary/30 shadow-2xl">
-                <Shield className="h-12 w-12 text-primary" />
+                <img
+                  src={getLogoSrc()}
+                  alt="Recover Right Logo"
+                  className="h-12 w-12 object-contain"
+                />
               </div>
             </div>
             <div className="text-left">
               <h1 className="text-6xl font-black bg-gradient-to-r from-background via-primary to-background bg-clip-text text-transparent leading-tight">
-                SecureChain
+                Recover Right
               </h1>
               <div className="flex items-center space-x-3 mt-2">
                 <div className="text-2xl font-bold text-primary">Analytics</div>

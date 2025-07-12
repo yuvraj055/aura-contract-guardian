@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Shield, Home, FileSearch, Wrench, Settings, User, Bell, ChevronDown, Sparkles } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../hooks/useTheme';
 
 export const Navigation = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
+  const { theme } = useTheme();
   
   const navItems = [
     { name: 'Dashboard', icon: Home, path: '/' },
@@ -15,6 +16,14 @@ export const Navigation = () => {
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
+  // Determine which logo to use based on theme
+  const getLogoSrc = () => {
+    if (theme === 'dark') {
+      return '/lovable-uploads/1ba3cc55-41ab-4665-8b60-eb38c610525a.png';
+    }
+    return '/lovable-uploads/58692659-657a-43cf-a759-aa079b070b74.png';
+  };
+
   return (
     <nav className="gradient-dark text-white shadow-2xl sticky top-0 z-50 border-b border-white/10">
       <div className="container mx-auto px-6">
@@ -22,12 +31,16 @@ export const Navigation = () => {
           <div className="flex items-center space-x-12">
             <Link to="/" className="flex items-center space-x-3 group cursor-pointer">
               <div className="relative">
-                <Shield className="h-10 w-10 text-primary" />
+                <img
+                  src={getLogoSrc()}
+                  alt="Recover Right Logo"
+                  className="h-10 w-10 object-contain"
+                />
                 <Sparkles className="h-4 w-4 text-primary absolute -top-1 -right-1 animate-pulse" />
               </div>
               <div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-white via-primary to-warning bg-clip-text text-transparent">
-                  SecureChain
+                  Recover Right
                 </span>
                 <div className="text-xs text-primary font-semibold tracking-wider">ANALYTICS</div>
               </div>
@@ -88,15 +101,19 @@ export const Navigation = () => {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-foreground">John Developer</div>
-                        <div className="text-xs text-muted-foreground">john@example.com</div>
+                        <div className="text-xs text-muted-foreground">john@recoverright.com</div>
                         <div className="text-xs text-primary font-medium">Pro Plan • 30 days left</div>
                       </div>
                     </div>
                   </div>
                   <div className="py-2">
-                    <button className="w-full text-left px-6 py-3 text-sm text-foreground hover:bg-accent/50 transition-colors">
+                    <Link 
+                      to="/settings"
+                      className="w-full text-left px-6 py-3 text-sm text-foreground hover:bg-accent/50 transition-colors block"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
                       Profile Settings
-                    </button>
+                    </Link>
                     <button className="w-full text-left px-6 py-3 text-sm text-foreground hover:bg-accent/50 transition-colors">
                       Billing & Usage
                     </button>
@@ -115,7 +132,6 @@ export const Navigation = () => {
         </div>
       </div>
       
-      {/* Mobile Menu */}
       <div className="lg:hidden border-t border-white/10 bg-black/20 backdrop-blur-sm">
         <div className="px-6 py-4 space-y-2">
           {navItems.map((item) => (
