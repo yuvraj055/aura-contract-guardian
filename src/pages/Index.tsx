@@ -15,7 +15,7 @@ const Index = () => {
       icon: Shield,
       path: '/auditor',
       features: ['AI Security Analysis', 'Vulnerability Detection', 'Auto-fix Suggestions', 'Detailed Reports'],
-      stats: { scanned: '10K+', issues: '500+', accuracy: '99.9%' },
+      stats: { scanned: '1.2K+', issues: '150+', accuracy: '99.9%' },
       color: 'primary'
     },
     {
@@ -24,7 +24,7 @@ const Index = () => {
       icon: Wand2,
       path: '/generator',
       features: ['Guided Wizard', 'Live Preview', 'Deploy to Testnet', 'Multiple Templates'],
-      stats: { generated: '5K+', deployed: '2K+', success: '98%' },
+      stats: { generated: '890+', deployed: '650+', success: '98%' },
       color: 'warning'
     },
     {
@@ -33,16 +33,16 @@ const Index = () => {
       icon: Activity,
       path: '/simulator',
       features: ['Gas Estimation', 'Optimization Tips', 'Scenario Testing', 'Cost Analysis'],
-      stats: { optimized: '8K+', saved: '40%', reports: '3K+' },
+      stats: { optimized: '1.1K+', saved: '28%', reports: '780+' },
       color: 'success'
     }
   ];
 
   const quickStats = [
-    { title: 'Contracts Analyzed', value: '23,847', icon: Target, trend: '+12%', color: 'primary' },
-    { title: 'Vulnerabilities Fixed', value: '1,286', icon: Shield, trend: '+8%', color: 'warning' },
-    { title: 'Gas Optimized', value: '45.2%', icon: TrendingUp, trend: '+15%', color: 'success' },
-    { title: 'Active Users', value: '2,341', icon: Users, trend: '+23%', color: 'primary' }
+    { title: 'Contracts Analyzed', value: '1,247', icon: Target, trend: '+8%', color: 'primary' },
+    { title: 'Vulnerabilities Fixed', value: '532', icon: Shield, trend: '+5%', color: 'warning' },
+    { title: 'Gas Optimized', value: '23.4%', icon: TrendingUp, trend: '+12%', color: 'success' },
+    { title: 'Active Users', value: '156', icon: Users, trend: '+18%', color: 'primary' }
   ];
 
   return (
@@ -161,7 +161,7 @@ const Index = () => {
             <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
             <span>SecureChain Verified Platform</span>
             <span className="text-success/70">•</span>
-            <span>Trusted by 10,000+ developers worldwide</span>
+            <span>Trusted by 1,200+ developers worldwide</span>
             <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
           </div>
         </section>

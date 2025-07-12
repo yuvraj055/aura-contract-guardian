@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Zap, Shield, TrendingUp, Activity, Clock, Users, Target, Award } from 'lucide-react';
+import { Zap, Shield, TrendingUp, Activity, Clock, Users, Target, Award, ChevronRight, Sparkles } from 'lucide-react';
 
 export const DashboardHeader = () => {
   const [stats, setStats] = useState({
@@ -14,18 +14,18 @@ export const DashboardHeader = () => {
 
   const [isLive, setIsLive] = useState(true);
 
-  // Real-time updates simulation
+  // Real-time updates simulation with realistic increments
   useEffect(() => {
     const interval = setInterval(() => {
       setStats(prev => ({
         ...prev,
-        contractsAudited: prev.contractsAudited + Math.floor(Math.random() * 3),
-        vulnerabilitiesFound: prev.vulnerabilitiesFound + Math.floor(Math.random() * 2),
-        gasOptimization: prev.gasOptimization + Math.random() * 0.5,
-        activeUsers: 145 + Math.floor(Math.random() * 25),
-        totalSaved: prev.totalSaved + Math.random() * 0.1
+        contractsAudited: prev.contractsAudited + Math.floor(Math.random() * 2), // 0-1 realistic increment
+        vulnerabilitiesFound: prev.vulnerabilitiesFound + (Math.random() > 0.7 ? 1 : 0), // Less frequent
+        gasOptimization: Math.min(35, prev.gasOptimization + Math.random() * 0.1), // Slower growth, capped
+        activeUsers: 140 + Math.floor(Math.random() * 20), // Realistic range 140-160
+        totalSaved: prev.totalSaved + Math.random() * 0.05 // Smaller increments
       }));
-    }, 3000);
+    }, 5000); // Less frequent updates
 
     return () => clearInterval(interval);
   }, []);
@@ -37,16 +37,16 @@ export const DashboardHeader = () => {
       label: 'Contracts Audited',
       color: 'text-primary',
       bgColor: 'bg-primary/10',
-      change: '+12 today',
+      change: '+2 today',
       trend: 'up'
     },
     {
       icon: Zap,
       value: stats.vulnerabilitiesFound.toLocaleString(),
       label: 'Vulnerabilities Found',
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
-      change: '+8 today',
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10',
+      change: '+1 today',
       trend: 'up'
     },
     {
@@ -55,7 +55,7 @@ export const DashboardHeader = () => {
       label: 'Avg Gas Savings',
       color: 'text-success',
       bgColor: 'bg-success/10',
-      change: '+2.3% this week',
+      change: '+0.3% this week',
       trend: 'up'
     },
     {
@@ -79,95 +79,134 @@ export const DashboardHeader = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-foreground via-foreground to-muted text-background relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-warning rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+    <div className="relative overflow-hidden bg-gradient-to-br from-foreground via-foreground/95 to-foreground text-background">
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/15 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full mix-blend-multiply filter blur-3xl"></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,235,59,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,235,59,0.1)_1px,transparent_1px)] bg-[size:50px_50px] opacity-20"></div>
       </div>
       
-      <div className="container mx-auto px-6 py-16 relative">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="p-3 bg-primary rounded-2xl shadow-lg">
-              <Shield className="h-8 w-8 text-primary-foreground" />
+      <div className="container mx-auto px-6 py-20 relative">
+        {/* Enhanced Header Section */}
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center space-x-4 mb-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/30 rounded-3xl blur-xl"></div>
+              <div className="relative p-4 bg-primary/20 backdrop-blur-md rounded-3xl border border-primary/30 shadow-2xl">
+                <Shield className="h-12 w-12 text-primary" />
+              </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-background via-primary to-warning bg-clip-text text-transparent">
-                SecureChain Analytics
+            <div className="text-left">
+              <h1 className="text-6xl font-black bg-gradient-to-r from-background via-primary to-background bg-clip-text text-transparent leading-tight">
+                SecureChain
               </h1>
-              <div className="flex items-center justify-center space-x-2 mt-2">
-                <div className={`w-3 h-3 rounded-full ${isLive ? 'bg-success animate-pulse' : 'bg-muted'}`}></div>
-                <span className="text-sm font-medium text-background/80">
-                  {isLive ? 'Live Dashboard' : 'Offline'}
-                </span>
+              <div className="flex items-center space-x-3 mt-2">
+                <div className="text-2xl font-bold text-primary">Analytics</div>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${isLive ? 'bg-success animate-pulse' : 'bg-muted'}`}></div>
+                  <span className="text-sm font-semibold text-background/90 px-3 py-1 bg-success/20 rounded-full border border-success/30">
+                    {isLive ? 'LIVE' : 'OFFLINE'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
           
-          <p className="text-xl text-background/80 max-w-3xl mx-auto leading-relaxed mb-8">
-            Enterprise-grade smart contract security platform powered by AI. Real-time monitoring and optimization.
-          </p>
+          <div className="max-w-4xl mx-auto space-y-6">
+            <p className="text-2xl text-background/90 font-medium leading-relaxed">
+              Enterprise-grade smart contract security platform powered by AI
+            </p>
+            <p className="text-lg text-background/70 leading-relaxed">
+              Real-time monitoring, vulnerability detection, and gas optimization for Web3 developers
+            </p>
+          </div>
           
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-background/10 backdrop-blur-sm rounded-full text-sm border border-background/20">
-              <Award className="w-4 h-4 text-primary" />
+          {/* Enhanced Feature Badges */}
+          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            <div className="group flex items-center gap-3 px-6 py-3 bg-background/10 backdrop-blur-md rounded-2xl text-sm font-semibold border border-background/20 hover:bg-background/15 transition-all duration-300 hover:scale-105">
+              <Award className="w-5 h-5 text-primary" />
               <span>SOC 2 Certified</span>
+              <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-background/10 backdrop-blur-sm rounded-full text-sm border border-background/20">
-              <Shield className="w-4 h-4 text-success" />
+            <div className="group flex items-center gap-3 px-6 py-3 bg-background/10 backdrop-blur-md rounded-2xl text-sm font-semibold border border-background/20 hover:bg-background/15 transition-all duration-300 hover:scale-105">
+              <Shield className="w-5 h-5 text-success" />
               <span>99.9% Accuracy</span>
+              <Sparkles className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-background/10 backdrop-blur-sm rounded-full text-sm border border-background/20">
-              <Clock className="w-4 h-4 text-warning" />
+            <div className="group flex items-center gap-3 px-6 py-3 bg-background/10 backdrop-blur-md rounded-2xl text-sm font-semibold border border-background/20 hover:bg-background/15 transition-all duration-300 hover:scale-105">
+              <Clock className="w-5 h-5 text-primary" />
               <span>24/7 Monitoring</span>
+              <Activity className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
             </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="mt-12">
+            <button className="group relative px-8 py-4 bg-primary text-foreground font-bold text-lg rounded-2xl hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-2xl">
+              <div className="absolute inset-0 bg-primary/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              <div className="relative flex items-center space-x-2">
+                <span>Start Security Audit</span>
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
           </div>
         </div>
         
-        {/* Stats Grid */}
+        {/* Enhanced Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
           {statCards.map((stat, index) => (
             <div 
               key={index} 
-              className="group bg-background/10 backdrop-blur-md rounded-2xl p-6 border border-background/20 hover:bg-background/15 transition-all duration-300 hover:scale-105 hover:shadow-glow"
+              className="group relative bg-background/10 backdrop-blur-md rounded-2xl p-6 border border-background/20 hover:bg-background/15 transition-all duration-500 hover:scale-105"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.bgColor} border border-current/20`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-                <div className="text-xs text-background/60 group-hover:text-background/80 transition-colors">
-                  {stat.change}
-                </div>
-              </div>
+              {/* Card Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-background group-hover:scale-105 transition-transform duration-300">
-                  {stat.value}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${stat.bgColor} border border-current/20 group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  </div>
+                  <div className="text-xs text-background/60 group-hover:text-background/80 transition-colors font-medium">
+                    {stat.change}
+                  </div>
                 </div>
-                <div className="text-sm text-background/70 group-hover:text-background/90 transition-colors font-medium">
-                  {stat.label}
+                
+                <div className="space-y-2">
+                  <div className="text-3xl font-black text-background group-hover:scale-105 transition-transform duration-300">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-background/70 group-hover:text-background/90 transition-colors font-semibold">
+                    {stat.label}
+                  </div>
                 </div>
+                
+                {/* Live indicator */}
+                {isLive && (
+                  <div className="mt-4 flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                    <span className="text-xs text-background/60 font-medium">Live</span>
+                  </div>
+                )}
               </div>
-              
-              {/* Live indicator */}
-              {isLive && (
-                <div className="mt-3 flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                  <span className="text-xs text-background/60">Live</span>
-                </div>
-              )}
             </div>
           ))}
         </div>
 
-        {/* Status Banner */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-3 px-8 py-4 bg-success/20 backdrop-blur-sm border border-success/30 text-success rounded-2xl text-sm font-medium hover:bg-success/30 transition-all duration-300 shadow-lg">
+        {/* Enhanced Status Banner */}
+        <div className="mt-16 text-center">
+          <div className="inline-flex items-center gap-4 px-10 py-5 bg-success/20 backdrop-blur-md border border-success/30 text-success rounded-2xl text-sm font-bold hover:bg-success/30 transition-all duration-300 shadow-2xl group">
             <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
-            <span>All systems operational • Trusted by 10,000+ developers worldwide</span>
+            <span>All systems operational</span>
+            <span className="text-success/70">•</span>
+            <span>Trusted by 1,200+ developers worldwide</span>
             <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+            <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
           </div>
         </div>
       </div>
