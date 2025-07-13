@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Shield, Home, FileSearch, Wrench, Settings, User, Bell, ChevronDown, Sparkles, X, Check, AlertTriangle, Info } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -14,24 +15,24 @@ export const Navigation = () => {
   const [notifications, setNotifications] = useState([
     {
       id: 1,
-      title: 'Security Scan Complete',
-      message: 'Found 3 vulnerabilities in your latest contract',
+      title: 'Contract Analysis Complete',
+      message: 'TokenSale.sol analyzed - 2 vulnerabilities found',
       type: 'warning',
       time: '2 min ago',
       read: false
     },
     {
       id: 2,
-      title: 'Gas Optimization',
-      message: 'Saved 15% gas on Contract_v2.sol',
+      title: 'Gas Optimization Success',
+      message: 'Reduced gas consumption by 18% in deployment',
       type: 'success',
       time: '1 hour ago',
       read: false
     },
     {
       id: 3,
-      title: 'Deployment Ready',
-      message: 'TokenSale contract is ready for mainnet',
+      title: 'Simulation Complete',
+      message: 'Contract simulation ran successfully with 0 errors',
       type: 'info',
       time: '3 hours ago',
       read: true
@@ -69,6 +70,14 @@ export const Navigation = () => {
     });
   };
 
+  const deleteNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    toast({
+      title: "Notification deleted",
+      description: "The notification has been removed.",
+    });
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'warning': return <AlertTriangle className="h-4 w-4 text-warning" />;
@@ -79,7 +88,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="glass-effect text-foreground shadow-medium sticky top-0 z-50 border-b border-border/30">
+    <nav className="bg-card/95 backdrop-blur-xl text-foreground shadow-lg sticky top-0 z-50 border-b border-border/20">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-18">
           <div className="flex items-center space-x-10">
@@ -106,8 +115,8 @@ export const Navigation = () => {
                   to={item.path}
                   className={`group flex items-center space-x-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     location.pathname === item.path
-                      ? 'bg-gradient-to-r from-primary to-warning text-primary-foreground shadow-glow' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                      ? 'bg-gradient-to-r from-primary to-warning text-primary-foreground shadow-lg shadow-primary/25' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/80'
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
@@ -121,29 +130,29 @@ export const Navigation = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Enhanced Notifications with Fixed Popup */}
+            {/* Enhanced Notifications with Better Visibility */}
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-300 group"
+                className="relative p-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all duration-300 group"
               >
                 <Bell className="h-6 w-6 transition-transform group-hover:scale-110" />
                 {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-primary to-warning rounded-full flex items-center justify-center shadow-glow animate-pulse">
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-primary to-warning rounded-full flex items-center justify-center shadow-lg animate-pulse">
                     <span className="text-xs font-bold text-primary-foreground">{unreadCount}</span>
                   </div>
                 )}
               </button>
               
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-96 bg-card/98 backdrop-blur-xl rounded-2xl shadow-glow border border-border/50 py-3 z-[100] max-h-[500px] overflow-y-auto">
-                  <div className="px-6 py-4 border-b border-border/30 flex items-center justify-between">
+                <div className="absolute right-0 top-full mt-2 w-96 bg-card border border-border/30 rounded-2xl shadow-2xl py-3 z-[9999] max-h-[500px] overflow-y-auto">
+                  <div className="px-6 py-4 border-b border-border/30 flex items-center justify-between bg-gradient-to-r from-primary/5 to-warning/5">
                     <h3 className="font-bold text-foreground text-lg">Notifications</h3>
                     <div className="flex items-center space-x-3">
                       {unreadCount > 0 && (
                         <button
                           onClick={markAllAsRead}
-                          className="text-sm text-primary hover:text-primary/80 font-semibold"
+                          className="text-sm text-primary hover:text-primary/80 font-semibold px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 transition-all"
                         >
                           Mark all read
                         </button>
@@ -157,7 +166,7 @@ export const Navigation = () => {
                     </div>
                   </div>
                   
-                  <div className="py-2">
+                  <div className="py-2 bg-card">
                     {notifications.length === 0 ? (
                       <div className="px-6 py-12 text-center text-muted-foreground">
                         <Bell className="h-12 w-12 mx-auto mb-4 opacity-30" />
@@ -169,30 +178,43 @@ export const Navigation = () => {
                         <div
                           key={notification.id}
                           onClick={() => markAsRead(notification.id)}
-                          className={`px-6 py-4 hover:bg-accent/30 transition-colors cursor-pointer border-l-4 ${
+                          className={`px-6 py-4 hover:bg-accent/40 transition-colors cursor-pointer border-l-4 ${
                             notification.read 
                               ? 'border-transparent opacity-60' 
                               : 'border-primary bg-primary/5'
                           }`}
                         >
-                          <div className="flex items-start space-x-4">
-                            <div className="flex-shrink-0 mt-1">
-                              {getNotificationIcon(notification.type)}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-4 flex-1">
+                              <div className="flex-shrink-0 mt-1">
+                                {getNotificationIcon(notification.type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground mb-1">
+                                  {notification.title}
+                                </p>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  {notification.message}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {notification.time}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground mb-1">
-                                {notification.title}
-                              </p>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {notification.time}
-                              </p>
+                            <div className="flex items-center space-x-2 ml-4">
+                              {!notification.read && (
+                                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(notification.id);
+                                }}
+                                className="text-muted-foreground hover:text-destructive p-1 h-auto rounded-lg hover:bg-destructive/10 transition-all"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
                             </div>
-                            {!notification.read && (
-                              <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0 mt-2 animate-pulse"></div>
-                            )}
                           </div>
                         </div>
                       ))
@@ -206,9 +228,9 @@ export const Navigation = () => {
             <div className="relative">
               <button 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="group flex items-center space-x-3 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-300"
+                className="group flex items-center space-x-3 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all duration-300"
               >
-                <div className="w-10 h-10 bg-gradient-to-r from-primary to-warning rounded-xl flex items-center justify-center shadow-medium">
+                <div className="w-10 h-10 bg-gradient-to-r from-primary to-warning rounded-xl flex items-center justify-center shadow-lg">
                   <User className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div className="hidden sm:block text-left">
@@ -219,8 +241,8 @@ export const Navigation = () => {
               </button>
               
               {showProfileMenu && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-card/98 backdrop-blur-xl rounded-2xl shadow-glow border border-border/50 py-3 z-[100]">
-                  <div className="px-4 py-3 border-b border-border/30">
+                <div className="absolute right-0 top-full mt-2 w-72 bg-card border border-border/30 rounded-2xl shadow-2xl py-3 z-[9999]">
+                  <div className="px-4 py-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-warning/5">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-primary to-warning rounded-xl flex items-center justify-center">
                         <User className="h-5 w-5 text-primary-foreground" />
@@ -232,18 +254,18 @@ export const Navigation = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="py-1">
+                  <div className="py-1 bg-card">
                     <Link 
                       to="/settings"
-                      className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted/30 transition-colors block rounded-lg mx-2"
+                      className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent/40 transition-colors block rounded-lg mx-2"
                       onClick={() => setShowProfileMenu(false)}
                     >
                       Profile Settings
                     </Link>
-                    <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted/30 transition-colors rounded-lg mx-2">
+                    <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent/40 transition-colors rounded-lg mx-2">
                       Billing & Usage
                     </button>
-                    <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted/30 transition-colors rounded-lg mx-2">
+                    <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-accent/40 transition-colors rounded-lg mx-2">
                       API Keys
                     </button>
                     <hr className="my-2 border-border/30" />
@@ -259,7 +281,7 @@ export const Navigation = () => {
       </div>
       
       {/* Mobile Navigation */}
-      <div className="lg:hidden border-t border-border/30 glass-effect">
+      <div className="lg:hidden border-t border-border/30 bg-card/95 backdrop-blur-xl">
         <div className="px-6 py-3 space-y-1">
           {navItems.map((item) => (
             <Link
@@ -268,7 +290,7 @@ export const Navigation = () => {
               className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                 location.pathname === item.path
                   ? 'bg-gradient-to-r from-primary to-warning text-primary-foreground shadow-lg shadow-primary/25' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
               }`}
             >
               <item.icon className="h-4 w-4" />

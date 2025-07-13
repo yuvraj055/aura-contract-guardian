@@ -5,6 +5,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { Link } from 'react-router-dom';
 
 export const DashboardHeader = () => {
   const { theme } = useTheme();
@@ -71,7 +72,7 @@ export const DashboardHeader = () => {
   };
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-background via-accent to-primary/5">
+    <div className="relative overflow-hidden bg-gradient-to-br from-background via-accent/20 to-primary/5">
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/5 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
@@ -87,7 +88,7 @@ export const DashboardHeader = () => {
           <div className="flex items-center justify-center space-x-8 mb-10">
             <div className="relative group">
               <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse-glow"></div>
-              <div className="relative p-4 bg-card rounded-3xl border border-primary/20 shadow-medium group-hover:shadow-glow transition-all duration-500 hover-lift">
+              <div className="relative p-4 bg-card/80 backdrop-blur-sm rounded-3xl border border-primary/20 shadow-xl group-hover:shadow-2xl transition-all duration-500 hover-lift">
                 <img
                   src={getLogoSrc()}
                   alt="Recover Right Logo"
@@ -122,28 +123,31 @@ export const DashboardHeader = () => {
           
           {/* Enhanced Feature Badges */}
           <div className="flex flex-wrap justify-center gap-4 mt-10">
-            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-primary/20 hover:bg-card hover:shadow-medium transition-all duration-300 hover:scale-105">
-              <Award className="w-5 h-5 text-primary" />
-              <span className="text-foreground font-semibold">SOC 2 Certified</span>
-            </Badge>
-            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-success/20 hover:bg-card hover:shadow-medium transition-all duration-300 hover:scale-105">
+            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-success/20 hover:bg-card hover:shadow-lg transition-all duration-300 hover:scale-105">
               <Shield className="w-5 h-5 text-success" />
               <span className="text-foreground font-semibold">99.9% Accuracy</span>
             </Badge>
-            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-warning/20 hover:bg-card hover:shadow-medium transition-all duration-300 hover:scale-105">
+            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-warning/20 hover:bg-card hover:shadow-lg transition-all duration-300 hover:scale-105">
               <Clock className="w-5 h-5 text-warning" />
               <span className="text-foreground font-semibold">24/7 Monitoring</span>
             </Badge>
+            <Badge className="flex items-center gap-2 px-6 py-3 bg-card/80 backdrop-blur-sm text-base font-medium border border-primary/20 hover:bg-card hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <Activity className="w-5 h-5 text-primary" />
+              <span className="text-foreground font-semibold">Real-time Analysis</span>
+            </Badge>
           </div>
 
-          {/* Enhanced Call to Action */}
+          {/* Enhanced Call to Action with Redirect */}
           <div className="mt-12">
-            <button className="group relative px-10 py-5 bg-gradient-to-r from-primary to-warning text-primary-foreground font-bold text-xl rounded-2xl hover:shadow-glow transition-all duration-500 hover:scale-105 shadow-medium">
+            <Link 
+              to="/auditor"
+              className="group relative inline-block px-10 py-5 bg-gradient-to-r from-primary to-warning text-primary-foreground font-bold text-xl rounded-2xl hover:shadow-2xl transition-all duration-500 hover:scale-105 shadow-lg"
+            >
               <div className="relative flex items-center space-x-3">
                 <span>Start Security Audit</span>
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
               </div>
-            </button>
+            </Link>
           </div>
         </div>
         
@@ -152,7 +156,7 @@ export const DashboardHeader = () => {
           {statCards.map((stat, index) => (
             <Card 
               key={index} 
-              className={`group relative gradient-card border-0 hover:shadow-glow transition-all duration-500 hover-lift ${stat.borderColor} border-2`}
+              className={`group relative bg-card/80 backdrop-blur-sm border-0 hover:shadow-2xl transition-all duration-500 hover-lift ${stat.borderColor} border-2`}
               style={{ animationDelay: `${index * 150}ms` }}
             >
               <CardContent className="p-6">
@@ -188,10 +192,10 @@ export const DashboardHeader = () => {
           ))}
         </div>
 
-        {/* Real-time Activity Feed */}
+        {/* Real-time Activity Feed with Better Visibility */}
         {activities.length > 0 && (
           <div className="mt-16 max-w-4xl mx-auto">
-            <Card className="border-0 shadow-medium gradient-card">
+            <Card className="border-0 shadow-xl bg-card/90 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
@@ -211,7 +215,7 @@ export const DashboardHeader = () => {
                 
                 <div className="space-y-3">
                   {activities.slice(0, 5).map((activity) => (
-                    <div key={activity.id} className="flex items-center space-x-3 p-3 bg-background/50 rounded-lg border border-border/50 hover:bg-background transition-colors">
+                    <div key={activity.id} className="flex items-center space-x-3 p-3 bg-background/80 rounded-lg border border-border/50 hover:bg-background transition-colors">
                       <div className={`w-2 h-2 rounded-full ${
                         activity.severity === 'high' ? 'bg-destructive' :
                         activity.severity === 'medium' ? 'bg-warning' :
@@ -242,7 +246,7 @@ export const DashboardHeader = () => {
 
         {/* Enhanced Status Banner */}
         <div className="mt-16 text-center">
-          <Badge className="inline-flex items-center gap-3 px-8 py-4 bg-success/10 backdrop-blur-sm border border-success/20 text-success rounded-2xl text-base font-semibold hover:bg-success/15 transition-all duration-300 shadow-soft group">
+          <Badge className="inline-flex items-center gap-3 px-8 py-4 bg-success/10 backdrop-blur-sm border border-success/20 text-success rounded-2xl text-base font-semibold hover:bg-success/15 transition-all duration-300 shadow-lg group">
             <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
             <span>All systems operational</span>
             <span className="text-success/70">•</span>
